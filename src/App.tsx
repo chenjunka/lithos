@@ -3,7 +3,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 const BG_IMAGE_1 = `${import.meta.env.BASE_URL}images/exterior.jpg`
 const BG_IMAGE_2 = `${import.meta.env.BASE_URL}images/cross-section.jpg`
 
-const SPOTLIGHT_R = 260
+const DESKTOP_SPOTLIGHT_R = 260
+const MOBILE_BREAKPOINT = 640
 
 const navItems = ['Products', 'Technology', 'Specs', 'Pricing', 'Live Demo']
 
@@ -17,6 +18,14 @@ function RevealLayer({
   cursorY: number
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const getSpotlightRadius = () => {
+    if (typeof window === 'undefined') return DESKTOP_SPOTLIGHT_R
+    const shortestSide = Math.min(window.innerWidth, window.innerHeight)
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      return Math.max(96, Math.min(138, shortestSide * 0.34))
+    }
+    return DESKTOP_SPOTLIGHT_R
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -38,24 +47,25 @@ function RevealLayer({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+    const radius = getSpotlightRadius()
     const gradient = ctx.createRadialGradient(
       cursorX,
       cursorY,
       0,
       cursorX,
       cursorY,
-      SPOTLIGHT_R
+      radius
     )
     gradient.addColorStop(0, 'rgba(255,255,255,1)')
-    gradient.addColorStop(0.4, 'rgba(255,255,255,1)')
-    gradient.addColorStop(0.6, 'rgba(255,255,255,0.75)')
-    gradient.addColorStop(0.75, 'rgba(255,255,255,0.4)')
-    gradient.addColorStop(0.88, 'rgba(255,255,255,0.12)')
+    gradient.addColorStop(0.54, 'rgba(255,255,255,1)')
+    gradient.addColorStop(0.7, 'rgba(255,255,255,0.72)')
+    gradient.addColorStop(0.84, 'rgba(255,255,255,0.28)')
+    gradient.addColorStop(0.94, 'rgba(255,255,255,0.08)')
     gradient.addColorStop(1, 'rgba(255,255,255,0)')
 
     ctx.fillStyle = gradient
     ctx.beginPath()
-    ctx.arc(cursorX, cursorY, SPOTLIGHT_R, 0, Math.PI * 2)
+    ctx.arc(cursorX, cursorY, radius, 0, Math.PI * 2)
     ctx.fill()
 
     const dataUrl = canvas.toDataURL()
@@ -106,6 +116,7 @@ function App() {
       mouse.current = { x: e.clientX, y: e.clientY }
     }
     const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
       const touch = e.touches[0]
       if (touch) {
         mouse.current = { x: touch.clientX, y: touch.clientY }
@@ -114,8 +125,8 @@ function App() {
 
     window.addEventListener('pointermove', handlePointerMove)
     window.addEventListener('pointerdown', handlePointerMove)
-    window.addEventListener('touchmove', handleTouchMove, { passive: true })
-    window.addEventListener('touchstart', handleTouchMove, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+    window.addEventListener('touchstart', handleTouchMove, { passive: false })
     rafRef.current = requestAnimationFrame(animate)
 
     return () => {
@@ -134,7 +145,7 @@ function App() {
     >
       <section
         className="relative w-full overflow-hidden h-screen bg-black"
-        style={{ height: '100dvh' }}
+        style={{ height: '100dvh', touchAction: 'none' }}
       >
         {/* Base Image */}
         <div
