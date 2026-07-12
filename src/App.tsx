@@ -85,9 +85,13 @@ function RevealLayer({
 }
 
 function App() {
-  const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 })
-  const mouse = useRef({ x: -999, y: -999 })
-  const smooth = useRef({ x: -999, y: -999 })
+  const initialSpotlight = () => ({
+    x: typeof window === 'undefined' ? 0 : window.innerWidth * 0.62,
+    y: typeof window === 'undefined' ? 0 : window.innerHeight * 0.58,
+  })
+  const [cursorPos, setCursorPos] = useState(initialSpotlight)
+  const mouse = useRef(initialSpotlight())
+  const smooth = useRef(initialSpotlight())
   const rafRef = useRef<number>(0)
 
   const animate = useCallback(() => {
@@ -98,14 +102,27 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY }
     }
-    window.addEventListener('mousemove', handleMouseMove)
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0]
+      if (touch) {
+        mouse.current = { x: touch.clientX, y: touch.clientY }
+      }
+    }
+
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerdown', handlePointerMove)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchstart', handleTouchMove, { passive: true })
     rafRef.current = requestAnimationFrame(animate)
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerdown', handlePointerMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchstart', handleTouchMove)
       cancelAnimationFrame(rafRef.current)
     }
   }, [animate])
