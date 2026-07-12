@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 
-const BG_IMAGE_1 = '/images/exterior.jpg'
-const BG_IMAGE_2 = '/images/cross-section.jpg'
+const BG_IMAGE_1 = `${import.meta.env.BASE_URL}images/exterior.jpg`
+const BG_IMAGE_2 = `${import.meta.env.BASE_URL}images/cross-section.jpg`
 
 const SPOTLIGHT_R = 260
 
